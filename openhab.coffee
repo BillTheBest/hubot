@@ -12,7 +12,7 @@
 #   hubot automation values
 #
 # Author:
-#   ricktonoli
+#   Rick Tonoli <rick@tonoli.co.nz>
 #
 htmlparser = require("htmlparser")
 select = require("soupselect").select
