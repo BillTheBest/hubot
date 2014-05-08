@@ -1,0 +1,59 @@
+#! /bin/sh
+
+### BEGIN INIT INFO
+# Provides:          hubot
+# Required-Start:    $local_fs $network $remote_fs
+# Required-Stop:     $local_fs $network $remote_fs
+# Should-Start:      $NetworkManager
+# Should-Stop:       $NetworkManager
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: starts instance of hubot
+# Description:       starts instance of Jarvis, a hubot implementation, using forever to ensure it restarts if ending unexpectedly
+### END INIT INFO
+
+# Script name
+NAME=jarvis
+
+# App name
+DESC="Jarvis Bot"
+
+# Path to app root
+JARVIS_APP_PATH=/opt/jarvis-bot
+
+# Path to store PID file
+JARVIS_PID_FILE=/var/run/jarvis.pid
+
+# Path to log file
+JARVIS_LOG_FILE=/var/log/hubot/jarvis.log
+
+# Daemon to start
+JARVIS_DAEMON="bin/hubot"
+
+# Custom adapter to start
+JARVIS_ADAPTER="hipchat"
+
+set -e
+
+cd $JARVIS_APP_PATH
+
+case "$1" in
+  start)
+        echo "Starting $DESC"
+        rm -rf $JARVIS_PID_FILE || return 1
+        touch $JARVIS_PID_FILE
+        forever start --minUptime 10 --spinSleepTime 100 --pidfile $JARVIS_PID_FILE --append -l $JARVIS_LOG_FILE -c /bin/bash $JARVIS_DAEMON --adapter $JARVIS_ADAPTER
+        ;;
+  stop)
+        echo "Stopping $DESC"
+        forever stop bin/hubot
+        ;;
+
+  *)
+        N=/etc/init.d/$NAME
+        echo "Usage: $N {start|stop}" >&2
+        exit 1
+        ;;
+esac
+
+exit 0
