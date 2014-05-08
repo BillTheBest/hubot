@@ -26,12 +26,9 @@ module.exports = (robot) ->
 	      msg.send "#{body}"
 
   robot.respond /automation values/i, (msg) ->
-
     robot.http("#{process.env.OPENHAB_URL}/rest/items")
       .get() (err, resp, body) ->
-
         response = "Currently I know about:\r\n"
-
         handler = new htmlparser.DefaultHandler (error, dom) ->
           if (error || !dom)
             msg.send "Error"
@@ -40,7 +37,5 @@ module.exports = (robot) ->
             for name, position in names
                response = response + name.children[0].data + '\r\n' 
             msg.send response
-
         parser = new htmlparser.Parser(handler)
         parser.parseComplete(body)
-
