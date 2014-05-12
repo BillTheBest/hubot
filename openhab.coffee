@@ -45,8 +45,11 @@ module.exports = (robot) ->
      lookup = whatimean.query msg.match[1]
      robot.http("#{process.env.OPENHAB_URL}/rest/items/#{lookup}/state")
          .get() (err, res, body) ->
-              msg.send "The value is currently #{body}"
-
+           if (/404/i.test(body))
+             msg.send "Cannot find that value."
+           else
+             msg.send "The value is currently #{body}"
+             
   robot.respond /automation values/i, (msg) ->
     robot.http("#{process.env.HUBOT_OPENHAB_URL}/rest/items")
       .get() (err, resp, body) ->
