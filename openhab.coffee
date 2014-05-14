@@ -10,11 +10,11 @@
 #   HUBOT_OPENHAB_URL
 #
 # Commands:
-#   hubot what is( the) <automation value>
-#   hubot automation values (matching <x>)
-#   hubot when I say <x> I mean <y>
+#   hubot what is( the) <openhab value> - returns an openhab value
+#   hubot automation values (matching <x>) - returns a list of all openhab lookup options
+#   hubot when I say <x> I mean <y> - translate x to y when using "what is"
 #   hubot when I say <x> what do I mean
-#   hubot set value of <x> to <y>
+#   hubot set value of <x> to <y> - sets openhab value x to y
 #
 # Author:
 #   Rick Tonoli <rick@tonoli.co.za>
@@ -23,28 +23,24 @@
 htmlparser = require("htmlparser")
 select = require("soupselect").select
 
-class WhatIMean
-  constructor: (@robot) ->
-    @robot.brain.on 'loaded', =>
-      if (!@robot.brain.data.openhab?)
-        @robot.brain.data.openhab = []
-#      @robot.logger.info "Loading #{Object.keys(@robot.brain.data.openhab).length} items from OpenHAB whatimean knowledge"
-  
-  add: (key, value) ->
-    @robot.brain.data.openhab[key] = value
-#    @robot.logger.info "OpenHAB key added, now at #{Object.keys(@robot.brain.data.openhab).length} items"
-    "Ok, when you say #{key} you mean #{value}"
-
-  query: (key) ->
-    @robot.brain.data.openhab[key] or key
-
 module.exports = (robot) ->
 
-  whatimean = new WhatIMean robot
+  robot.brain.on 'loaded', =>
+    robot.brain.data.openhab ?= {}
+#    robot.logger.info "Loading #{Object.keys(robot.brain.data.openhab).length} items from OpenHAB knowledge"
+
+  add = (key, value) ->
+    robot.brain.data.openhab[key] = value
+    robot.brain.emit "save"
+#    robot.logger.info "OpenHAB key added, now at #{Object.keys(robot.brain.data.openhab).length} items"
+    "Ok, when you say #{key} you mean #{value}"
+
+  query = (key) ->
+    robot.brain.data.openhab[key] or key
 
   robot.respond /what is( the)? (.*)/i, (msg) ->
     url = process.env.HUBOT_OPENHAB_URL
-    lookup = whatimean.query msg.match[2]
+    lookup = query msg.match[2]
     robot.http("#{process.env.HUBOT_OPENHAB_URL}/rest/items/#{lookup}/state")
       .get() (err, res, body) ->
         if (/404/i.test(body)) 
@@ -63,7 +59,6 @@ module.exports = (robot) ->
           else
             names = select(dom, "name")
             for name, position in names
-#              msg.send "Checking for #{search} in #{name.children[0].data}"
               if ((search? && ((name.children[0].data.indexOf search, 0) > -1)) || !search?)
                 response = response + name.children[0].data + '\r\n' 
             msg.reply response
@@ -71,15 +66,15 @@ module.exports = (robot) ->
         parser.parseComplete(body)
 
   robot.respond /when I say (.+?) I mean (.+)/i, (msg) ->  
-    msg.reply whatimean.add msg.match[1], msg.match[2]
+    msg.reply add msg.match[1], msg.match[2]
 
   robot.respond /when I say (.+?) what do I mean/i, (msg) ->  
-    msg.reply whatimean.query msg.match[1]
+    msg.reply query msg.match[1]
 
   robot.respond /set value of (.*) to (.*)/i, (msg) ->
     msg.reply "Setting #{msg.match[1]} to #{msg.match[2]}" 
-    key = whatimean.query msg.match[1]
-    value = whatimean.query msg.match[2]
+    key = query msg.match[1]
+    value = query msg.match[2]
     robot.http("#{process.env.HUBOT_OPENHAB_URL}/rest/items/#{key}/state")
       .put(value) (err, res, body) ->
     
