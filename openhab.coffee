@@ -7,8 +7,10 @@
 #   redis-brain.coffee
 #
 # Configuration:
-#   HUBOT_OPENHAB_INTERNAL_URL
-#   HUBOT_OPENHAB_EXTERNAL_URL
+#   HUBOT_OPENHAB_INTERNAL_URL - the internal URL to use for openhab
+#   HUBOT_OPENHAB_EXTERNAL_URL - the external URL to use for openhab
+#   OPENHAB_USER - the auth user to use to access openhab
+#   OPENHAB_PASSWORD - the auth user's password to use to access openhab
 #
 # Commands:
 #   hubot what is( the) <openhab value> - returns an openhab value
